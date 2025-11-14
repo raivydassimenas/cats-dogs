@@ -37,10 +37,6 @@ batch_size = 64
 train_dataloader = DataLoader(testing_data, batch_size=batch_size)
 test_dataloader = DataLoader(testing_data, batch_size=batch_size)
 
-for X, y in test_dataloader:
-    print(f"Shape of X: {X.shape}")
-    print(f"Shape of y: {y.shape}, datatype: {y.dtype}")
-
 # Set up hardware acceleration
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -68,3 +64,60 @@ class NeuralNetwork(nn.Module):
 
 
 model = NeuralNetwork().to(device)
+
+# Set up loss function and optimizer
+
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+
+# Training loop
+
+
+def train(dataloader, model, loss_fn, optimizer):
+    size = len(dataloader.dataset)
+    model.train()
+
+    for batch, (X, y) in enumerate(dataloader):
+        X, y = X.to(device), y.to(device)
+
+        pred = model(X)
+        loss = loss_fn(pred, y)
+
+        loss.backward()
+        optimizer.step()
+        optimizer.zero_grad()
+
+        if batch % 100 == 0:
+            loss, current = loss.item(), (batch + 1) * len(X)
+            print(f"Loss: {loss:>7f} [{current:>5d}/{size:>5d}]")
+
+
+# Test loop
+
+
+def test(dataloader, model, loss_fn):
+    size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    model.eval()
+    test_loss, correct = 0, 0
+    with torch.no_grad():
+        for X, y in dataloader:
+            X = X.to(device)
+            y = y.to(device)
+
+            pred = model(X)
+            test_loss += loss_fn(pred, y).item()
+            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+    test_loss /= num_batches
+    correct /= size
+    print(f"Test accuracy: {100*correct:>0.1f}%, Avg. loss: {test_loss:>8f} \n")
+
+
+# Perform the computations
+
+epochs = 5
+for epoch in range(epochs):
+    print(f"Epoch: {epoch + 1} ------------------------")
+    train(train_dataloader, model, loss_fn, optimizer)
+    test(test_dataloader, model, loss_fn)
+print("Done!")
