@@ -6,7 +6,7 @@ from torchvision.transforms import ToTensor
 
 # Set up image transform to crrect size
 
-fixed_size = (224, 224)
+fixed_size = (64, 64)
 
 transform = transforms.Compose([transforms.Resize(fixed_size), ToTensor()])
 
@@ -34,8 +34,8 @@ testing_data = datasets.OxfordIIITPet(
 
 batch_size = 64
 
-train_dataloader = DataLoader(training_data, batch_size=batch_size)
-test_dataloader = DataLoader(testing_data, batch_size=batch_size)
+train_dataloader = DataLoader(training_data, batch_size=batch_size, num_workers=0)
+test_dataloader = DataLoader(testing_data, batch_size=batch_size, num_workers=0)
 
 # Set up hardware acceleration
 
@@ -50,7 +50,7 @@ class NeuralNetwork(nn.Module):
         super().__init__()
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(224 * 224 * 3, 512),
+            nn.Linear(64 * 64 * 3, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),
