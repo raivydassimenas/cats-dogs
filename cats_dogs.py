@@ -121,3 +121,5 @@ for epoch in range(epochs):
     train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model, loss_fn)
 print("Done!")
+
+torch.save(model.state_dict(), "cats_dogs_model.pth")
